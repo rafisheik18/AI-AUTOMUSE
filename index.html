@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Automuse | AI Music Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #00f0ff;
+      --secondary: #ff00aa;
+      --tertiary: #00ff88;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0a0a0e 0%, #121218 100%);
+      font-family: 'Roboto Mono', monospace;
+      color: #e0e0e0;
+    }
+    
+    .robotic-panel {
+      background: rgba(20, 20, 25, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                  inset 0 0 12px rgba(0, 240, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .robotic-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--primary) 20%, 
+        var(--secondary) 50%, 
+        var(--primary) 80%, 
+        transparent 100%);
+      filter: blur(1px);
+    }
+    
+    .robotic-panel::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(0, 240, 255, 0.2);
+    }
+    
+    .neon-text {
+      color: var(--primary);
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    }
+    
+    .neon-secondary {
+      color: var(--secondary);
+      text-shadow: 0 0 8px rgba(255, 0, 170, 0.4);
+    }
+    
+    .robotic-button {
+      background: linear-gradient(145deg, #1a1a22 0%, #0e0e12 100%);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--primary);
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1),
+                  inset 0 1px 1px rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .robotic-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 240, 255, 0.2),
+                  inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .robotic-button::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(0, 240, 255, 0) 0%,
+        rgba(0, 240, 255, 0) 30%,
+        rgba(0, 240, 255, 0.1) 45%,
+        rgba(0, 240, 255, 0.05) 50%,
+        rgba(0, 240, 255, 0) 70%,
+        rgba(0, 240, 255, 0) 100%
+      );
+      transform: rotate(30deg);
+      transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .robotic-button:hover::before {
+      left: 100%;
+    }
+    
+    .robotic-input {
+      background: rgba(15, 15, 20, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      color: white;
+      font-family: 'Roboto Mono', monospace;
+      transition: all 0.3s ease;
+    }
+    
+    .robotic-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
+      outline: none;
+    }
+    
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--tertiary);
+      box-shadow: 0 0 8px var(--tertiary);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    
+    .audio-wave {
+      height: 40px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(0, 240, 255, 0.1) 50%, 
+        transparent 100%);
+      position: relative;
+    }
+    
+    .audio-wave::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        to right,
+        transparent,
+        transparent 2px,
+        rgba(0, 240, 255, 0.2) 2px,
+        rgba(0, 240, 255, 0.2) 4px
+      );
+      opacity: 0.3;
+    }
+    
+    .playlist-item {
+      border-left: 3px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+    
+    .playlist-item:hover {
+      background: rgba(0, 240, 255, 0.05);
+      transform: translateX(4px);
+    }
+    
+    .corner-decoration {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--primary);
+      opacity: 0.7;
+    }
+    
+    .corner-tl {
+      top: 8px;
+      left: 8px;
+      border-right: none;
+      border-bottom: none;
+    }
+    
+    .corner-tr {
+      top: 8px;
+      right: 8px;
+      border-left: none;
+      border-bottom: none;
+    }
+    
+    .corner-bl {
+      bottom: 8px;
+      left: 8px;
+      border-right: none;
+      border-top: none;
+    }
+    
+    .corner-br {
+      bottom: 8px;
+      right: 8px;
+      border-left: none;
+      border-top: none;
+    }
+    
+    /* Custom audio player */
+    audio {
+      filter: sepia(20%) saturate(70%) grayscale(1) contrast(99%) invert(12%);
+      width: 100%;
+      height: 40px;
+    }
+    
+    audio::-webkit-media-controls-panel {
+      background: linear-gradient(145deg, #1a1a22 0%, #0e0e12 100%);
+      border-radius: 0;
+    }
+    
+    audio::-webkit-media-controls-play-button,
+    audio::-webkit-media-controls-mute-button {
+      filter: invert(0.8) sepia(1) hue-rotate(160deg) saturate(5);
+    }
+    
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+      font-family: 'Roboto Mono', monospace;
+      color: white !important;
+      text-shadow: 0 0 4px var(--primary);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-start px-4 py-8 md:py-12">
+  <div class="w-full max-w-4xl">
+    <!-- Header with status indicator -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center space-x-3">
+        <div class="status-indicator"></div>
+        <span class="text-sm text-gray-400 font-mono">SYSTEM: ONLINE</span>
+      </div>
+      <div class="text-xs text-gray-500 font-mono">v2.5.1</div>
+    </div>
+    
+    <!-- Main panel -->
+    <div class="robotic-panel p-8 mb-8">
+      <div class="corner-decoration corner-tl"></div>
+      <div class="corner-decoration corner-tr"></div>
+      
+      <div class="text-center mb-8">
+        <h1 class="text-5xl font-bold neon-text mb-3 font-orbitron">AUTOMUSE</h1>
+        <p class="text-gray-400 font-mono text-sm tracking-wider">AI MUSIC GENERATION ENGINE</p>
+      </div>
+      
+      <!-- Audio wave visualization -->
+      <div class="audio-wave mb-8"></div>
+      
+      <!-- Prompt Input -->
+      <div class="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6">
+        <input 
+          id="musicPrompt" 
+          type="text" 
+          placeholder="ENTER MUSIC DESCRIPTION (e.g., 'cybernetic jazz fusion 120bpm')"
+          class="robotic-input w-full sm:w-3/4 px-4 py-3 rounded-sm font-mono text-sm"
+        />
+        <button 
+          onclick="generateMusic()" 
+          class="robotic-button px-6 py-3 rounded-sm font-semibold text-sm"
+        >
+          <span class="text-[var(--secondary)]">[</span> EXECUTE <span class="text-[var(--secondary)]">]</span>
+        </button>
+      </div>
+      
+      <!-- Status display -->
+      <div id="loading" class="text-center text-sm text-gray-400 font-mono hidden">
+        <div class="inline-flex items-center space-x-2">
+          <div class="w-2 h-2 rounded-full bg-[var(--tertiary)] animate-pulse"></div>
+          <span>PROCESSING AUDIO GENERATION...</span>
+        </div>
+      </div>
+      
+      <!-- Result Player -->
+      <div id="playerArea" class="mt-8 hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold neon-text font-orbitron tracking-wider">OUTPUT</h2>
+          <span class="text-xs text-gray-400 font-mono">TRACK READY</span>
+        </div>
+        
+        <div class="mb-6">
+          <audio id="audioPlayer" controls class="w-full"></audio>
+        </div>
+        
+        <div class="flex justify-end">
+          <a 
+            id="downloadLink" 
+            class="robotic-button inline-flex items-center px-4 py-2 rounded-sm text-sm font-mono"
+            download
+          >
+            <span class="text-[var(--secondary)] mr-1">></span> DOWNLOAD .WAV
+          </a>
+        </div>
+      </div>
+      
+      <div class="corner-decoration corner-bl"></div>
+      <div class="corner-decoration corner-br"></div>
+    </div>
+    
+    <!-- Playlist Panel -->
+    <div class="robotic-panel p-6">
+      <div class="corner-decoration corner-tl"></div>
+      <div class="corner-decoration corner-tr"></div>
+      
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold neon-text font-orbitron tracking-wider">TRACK ARCHIVE</h2>
+        <button 
+          onclick="loadPlaylist()" 
+          class="text-xs robotic-button px-3 py-1 rounded-sm font-mono"
+        >
+          REFRESH
+        </button>
+      </div>
+      
+      <div id="playlistItems" class="space-y-2 font-mono text-sm">
+        <!-- Dynamic content will be inserted here -->
+        <div class="text-center py-4 text-gray-500">
+          LOADING TRACK DATABASE...
+        </div>
+      </div>
+      
+      <div class="corner-decoration corner-bl"></div>
+      <div class="corner-decoration corner-br"></div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="mt-12 text-center">
+    <p class="text-xs text-gray-500 font-mono tracking-wider">
+      AUTOMUSE v2.5.1 © 2025 | AI AUDIO SYNTHESIS ENGINE
+    </p>
+    <p class="text-[10px] text-gray-600 mt-1 font-mono">
+      SYSTEM STATUS: OPERATIONAL | LATENCY: 12ms | TEMP: 42°C
+    </p>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    const apiHost = "http://13.203.203.47:5000";  // Update this if IP changes
+
+    async function generateMusic() {
+      const prompt = document.getElementById('musicPrompt').value.trim();
+      if (!prompt) {
+        alert("ERROR: INPUT REQUIRED");
+        return;
+      }
+
+      // UI states
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('playerArea').classList.add('hidden');
+
+      try {
+        const response = await fetch(apiHost + "/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+          document.getElementById('audioPlayer').src = data.url;
+          document.getElementById('downloadLink').href = data.url;
+          document.getElementById('downloadLink').download = data.url.split('/').pop();
+          document.getElementById('playerArea').classList.remove('hidden');
+          loadPlaylist();  // refresh playlist
+        } else {
+          alert("ERROR: GENERATION FAILURE");
+        }
+
+      } catch (err) {
+        console.error("SYSTEM ERROR:", err);
+        alert("NETWORK FAILURE: SERVER UNREACHABLE");
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    async function loadPlaylist() {
+      const playlistContainer = document.getElementById('playlistItems');
+      playlistContainer.innerHTML = `
+        <div class="text-center py-4 text-gray-400 font-mono text-sm">
+          QUERYING DATABASE...
+        </div>
+      `;
+
+      try {
+        const response = await fetch(apiHost + "/list");
+        const data = await response.json();
+
+        if (!data.tracks || data.tracks.length === 0) {
+          playlistContainer.innerHTML = `
+            <div class="text-center py-4 text-gray-500 font-mono text-sm">
+              NO TRACKS FOUND IN ARCHIVE
+            </div>
+          `;
+          return;
+        }
+
+        playlistContainer.innerHTML = "";
+        data.tracks.reverse().forEach(url => {
+          const name = url.split("/").pop();
+          const date = new Date().toLocaleString(); // In a real app, you'd get this from the API
+
+          const row = document.createElement("div");
+          row.className = "playlist-item bg-gray-900/50 px-4 py-3 flex items-center justify-between";
+
+          const info = document.createElement("div");
+          info.className = "flex-1 min-w-0";
+          
+          const title = document.createElement("div");
+          title.className = "text-white text-sm truncate font-medium";
+          title.textContent = name;
+          
+          const meta = document.createElement("div");
+          meta.className = "text-gray-400 text-xs font-mono";
+          meta.textContent = date;
+          
+          info.appendChild(title);
+          info.appendChild(meta);
+          
+          const controls = document.createElement("div");
+          controls.className = "flex items-center space-x-3 ml-4";
+          
+          const playBtn = document.createElement("button");
+          playBtn.className = "text-[var(--primary)] hover:text-white text-xs font-mono";
+          playBtn.innerHTML = "PLAY";
+          playBtn.onclick = () => {
+            document.getElementById('audioPlayer').src = url;
+            document.getElementById('downloadLink').href = url;
+            document.getElementById('downloadLink').download = name;
+            document.getElementById('playerArea').classList.remove('hidden');
+          };
+          
+          const dlBtn = document.createElement("a");
+          dlBtn.href = url;
+          dlBtn.download = name;
+          dlBtn.className = "text-[var(--secondary)] hover:text-white text-xs font-mono";
+          dlBtn.innerHTML = "DL";
+          
+          controls.appendChild(playBtn);
+          controls.appendChild(dlBtn);
+          
+          row.appendChild(info);
+          row.appendChild(controls);
+          playlistContainer.appendChild(row);
+        });
+
+      } catch (err) {
+        playlistContainer.innerHTML = `
+          <div class="text-center py-4 text-[var(--secondary)] font-mono text-sm">
+            DATABASE CONNECTION FAILED
+          </div>
+        `;
+      }
+    }
+
+    // Initialize
+    window.onload = function() {
+      loadPlaylist();
+      
+      // Add some system-like startup messages
+      setTimeout(() => {
+        console.log("%cSYSTEM INITIALIZED", "color: #00f0ff; font-weight: bold;");
+        console.log("%cAUDIO MODULE READY", "color: #00ff88;");
+        console.log("%cAWAITING USER INPUT", "color: #ff00aa;");
+      }, 500);
+    };
+  </script>
+</body>
+</html>
